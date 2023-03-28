@@ -1,21 +1,17 @@
+import { Card, CustomCard } from "./Card";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { DLT, EDT, Fetch_User } from "../redux/action/action";
-import {
-  EditFilled,
-  DeleteFilled,
-  HeartOutlined,
-  HeartFilled,
-} from "@ant-design/icons";
+import { DLT, EDT } from "../redux/action/action";
+import { Modal } from "antd";
+import { Form, Button, Input } from "antd";
 
 const UsersList = () => {
   const content = useSelector((state) => state);
   const dispatch = useDispatch();
-  const [heart, setheart] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");  const [selectedUser, setSelectedUser] = useState([]);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -25,30 +21,33 @@ const UsersList = () => {
 
   function getData() {
     return (dispatch) => {
+
       axios.get("https://jsonplaceholder.typicode.com/users").then((res) =>
         dispatch({
           type: "FETCH_DATA",
           data: res.data,
-        })
-      );
+        }),
+        setIsLoading(false)
+
+      ).catch(() => {
+        setErrorMessage("Unable to fetch user list");
+        setIsLoading(false);
+     });
     };
   }
 
   function onFetchdata() {
+    setIsLoading(true)
     //invoking action
     dispatch(getData());
   }
 
   useEffect(() => {
-    // fetch('https://jsonplaceholder.typicode.com/users')
-    //   .then((res) => res.json())
-    //   .then((data) => setUsers(data))
-    //   .catch((er) => console.log(er));
-
     onFetchdata();
   }, []);
 
   const openPopup = (id) => {
+    showModal();
     const selectedUser = content.data.find((user) => user.id === id);
     setSelectedUser(selectedUser);
     setUserData({
@@ -87,11 +86,6 @@ const UsersList = () => {
     setSelectedUser([]);
   };
 
-  // const removeElement = (index) => {
-  //   const filterreData = content.data.filter((user, i) => user.id !== index);
-  //   setUsers(filterreData);
-  // };
-
   const removeCard = (ele) => {
     console.log("data", ele);
     dispatch(DLT(ele));
@@ -99,6 +93,7 @@ const UsersList = () => {
 
   const editCard = (ele) => {
     openPopup(ele);
+
     console.log("data", ele);
     dispatch(EDT(ele));
     dispatch({
@@ -106,106 +101,131 @@ const UsersList = () => {
       data: content.data,
     });
   };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    onSave(selectedUser.id);
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
   return (
     <div>
       {selectedUser && selectedUser?.name && (
-        <div className="popup">
-          <div className="overlay"></div>
-          <div className="popupBody">
-            <p>
-              Name:{" "}
-              <input
-                type="text"
-                value={userData.name}
-                onChange={(ev) =>
-                  setUserData({ ...userData, name: ev.target.value })
-                }
-              />
-            </p>
-            <p>
-              Email:{" "}
-              <input
-                type="text"
-                value={userData.email}
-                onChange={(ev) =>
-                  setUserData({ ...userData, email: ev.target.value })
-                }
-              />
-            </p>
-            <p>
-              Phone:{" "}
-              <input
-                type="text"
-                value={userData.phone}
-                onChange={(ev) =>
-                  setUserData({ ...userData, phone: ev.target.value })
-                }
-              />
-            </p>
-            <p>
-              Website:{" "}
-              <input
-                type="text"
-                value={userData.website}
-                onChange={(ev) =>
-                  setUserData({ ...userData, website: ev.target.value })
-                }
-              />
-            </p>
-            <div className="popup-footer">
-              <button onClick={onCancel}>Cancel</button>
-              <button onClick={onSave.bind(this, selectedUser.id)}>Ok</button>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="basic-grid">
-        {content.data.length > 0 ? (
-          content.data.map((user) => (
-            <div className="card" key={user.id}>
-              <div className="card-header">
-                <img
-                  src={`https://avatars.dicebear.com/v2/avataaars/${user.username}.svg`}
-                />
-              </div>
-              <div className="card-body">
-                <div className="title">
-                  <div>{user.name} </div>
-                </div>
-                <div className="email">{user.email}</div>
-                <div className="phone">{user.phone}</div>
-                <div className="web">{user.website}</div>
-              </div>
-
-              <div className="row_group">
-                <div style={{color:'red'}} onClick={() => setheart(!heart)}>
+        <Modal
+          title="Basic Modal"
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleCancel}
+        >
+          <Form>
+            <Form.Item
+              label="Name"
+              value={userData.name}
+              onChange={(ev) =>
+                setUserData({ ...userData, name: ev.target.value })
+              }
+              name="Username"
+              rules={[{ required: true, message: "Please enter username" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="E-mail"
+              type="email"
+              value={userData.email}
+              onChange={(ev) =>
+                setUserData({ ...userData, email: ev.target.value })
+              }
+              rules={[
                 {
-                  heart ? <HeartOutlined/> :<HeartFilled/>
-                }
-                </div>
+                  type: "email",
+                  message: "The input is not valid E-mail!",
+                },
+                {
+                  required: true,
+                  message: "Please input your E-mail!",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="phone"
+              label="Phone"
+              value={userData.phone}
+              onChange={(ev) =>
+                setUserData({ ...userData, phone: ev.target.value })
+              }
+              rules={[
+                { required: true, message: "Please input your phone number!" },
+              ]}
+            >
+              <Input style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              label="Website"
+              type="text"
+              value={userData.website}
+              onChange={(ev) =>
+                setUserData({ ...userData, website: ev.target.value })
+              }
+              name="website"
+              rules={[{ required: true, message: "Please enter website" }]}
+            >
+              <Input />
+            </Form.Item>
+          </Form>
+          {/* <p>
+            <label>Name</label>
+            <input
+              type="text"
+              value={userData.name}
+              onChange={(ev) =>
+                setUserData({ ...userData, name: ev.target.value })
+              }
+            />
+          </p>
+          <p>
+            <label>Email</label>
+            <input
+              type="text"
+              value={userData.email}
+              onChange={(ev) =>
+                setUserData({ ...userData, email: ev.target.value })
+              }
+            />
+          </p>
+          <p>
+            <label>Phone</label>
 
-                <div className="item">
-                  <EditFilled
-                    style={{ color: "red" }}
-                    onClick={() => editCard(user.id)}
-                  />
-                </div>
-                <div className="item">
-                  {/* <button onClick={()=> removeCard(user.id)}>
-                    delete
-                  </button> */}
-                  <DeleteFilled
-                    style={{ color: "red" }}
-                    onClick={() => removeCard(user.id)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <h1>No Users to display</h1>
-        )}
-      </div>
+            <input
+              type="text"
+              value={userData.phone}
+              onChange={(ev) =>
+                setUserData({ ...userData, phone: ev.target.value })
+              }
+            />
+          </p>
+          <p>
+            <label>Website</label>
+            <input
+              type="text"
+              value={userData.website}
+              onChange={(ev) =>
+                setUserData({ ...userData, website: ev.target.value })
+              }
+            />
+          </p> */}
+        </Modal>
+      )}
+      <CustomCard user={content} editCard={editCard} removeCard={removeCard} isLoading={isLoading} />
     </div>
   );
 };
