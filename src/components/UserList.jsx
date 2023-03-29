@@ -21,14 +21,12 @@ const UsersList = () => {
 
   function getData() {
     return (dispatch) => {
-
+      setIsLoading(false)
       axios.get("https://jsonplaceholder.typicode.com/users").then((res) =>
         dispatch({
           type: "FETCH_DATA",
           data: res.data,
         }),
-        setIsLoading(false)
-
       ).catch(() => {
         setErrorMessage("Unable to fetch user list");
         setIsLoading(false);
@@ -38,7 +36,6 @@ const UsersList = () => {
 
   function onFetchdata() {
     setIsLoading(true)
-    //invoking action
     dispatch(getData());
   }
 
@@ -182,6 +179,8 @@ const UsersList = () => {
               <Input />
             </Form.Item>
           </Form>
+
+          {/* alternate code for form  */}
           {/* <p>
             <label>Name</label>
             <input

@@ -1,28 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import {
-  EditFilled,
   DeleteFilled,
-  HeartOutlined,
-  HeartFilled,
-  SettingOutlined,
-  EditOutlined,
-  EllipsisOutlined,
-  MessageFilled,
-  PhoneFilled,
-  WeiboCircleFilled,
-  MessageOutlined,
-  MessageTwoTone,
-  FileExclamationFilled,
   GlobalOutlined,
   PhoneOutlined,
   MailOutlined,
+  EditOutlined,
+  HeartOutlined,
+  HeartFilled,
 } from "@ant-design/icons";
 
 import { Card } from "antd";
 import LoadingSpinner from "./LoadingSpinner";
 const { Meta } = Card;
 export function CustomCard({ user, editCard, removeCard, isLoading }) {
+  const [toggle, settoggle] = useState(false)
     console.log('loading', isLoading)
+
   return (
     <>
       {isLoading ? (
@@ -42,7 +35,7 @@ export function CustomCard({ user, editCard, removeCard, isLoading }) {
                   />
                 }
                 actions={[
-                  <HeartFilled key="heart" />,
+                  <HeartOutlined key="heart" style={{color:'red'}} onClick={()=>(settoggle(!toggle))} />,
                   <EditOutlined key="edit" onClick={() => editCard(user.id)} />,
                   <DeleteFilled
                     key="ellipsis"
@@ -88,7 +81,7 @@ export function CustomCard({ user, editCard, removeCard, isLoading }) {
               </Card>
             ))
           ) : (
-            <h1>No Users to display</h1>
+            <LoadingSpinner/>
           )}
         </div>
       )}
